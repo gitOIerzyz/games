@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OI机构模拟器 v0.1</title>
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --panel: #131820;
+            --border: #1e2a38;
+            --gold: #f0c060;
+            --cyan: #39c5d7;
+            --green: #5cb878;
+            --red: #e0555a;
+            --purple: #8b6fc0;
+            --orange: #e09040;
+            --text: #c8d0d8;
+            --text2: #8899aa;
+            --highlight: #1a2533;
+            --accent: #3d7aed;
+            --pink: #e8708b;
+            --teal: #3dbbb0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-image:
+                radial-gradient(ellipse at 30% 20%, rgba(61, 122, 237, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 70%, rgba(240, 192, 96, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(57, 197, 215, 0.03) 0%, transparent 70%);
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header .logo-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(61, 122, 237, 0.3);
+            flex-shrink: 0;
+        }
+        .header h1 {
+            font-size: 1.3em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #e0e8f0, #a0bcd8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+        .header .subtitle {
+            font-size: 0.7em;
+            color: var(--text2);
+            letter-spacing: 1px;
+        }
+        .version-tag {
+            font-size: 0.65em;
+            background: rgba(61, 122, 237, 0.15);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .advance-btn {
+            margin-left: 8px;
+            font-size: 1em;
+            padding: 10px 22px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .resources {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .res-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--highlight);
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            font-size: 0.9em;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .res-item:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(61, 122, 237, 0.15);
+        }
+        .res-icon {
+            font-size: 1.3em;
+        }
+        .res-value {
+            color: #fff;
+            font-size: 1.1em;
+        }
+        .res-label {
+            color: var(--text2);
+            font-size: 0.78em;
+            font-weight: 400;
+        }
+        .res-gold {
+            color: var(--gold);
+        }
+        .res-cyan {
+            color: var(--cyan);
+        }
+        .res-green {
+            color: var(--green);
+        }
+        .res-purple {
+            color: var(--purple);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 800px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .resources {
+                justify-content: center;
+            }
+            .logo-area {
+                justify-content: center;
+            }
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            transition: all 0.3s;
+        }
+        .panel:hover {
+            border-color: #2a3d52;
+        }
+        .panel h3 {
+            font-size: 0.95em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d0d8e0;
+            letter-spacing: 0.4px;
+        }
+        .panel h3 .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .dot-cyan {
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+        .dot-gold {
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
+        }
+        .dot-purple {
+            background: var(--purple);
+            box-shadow: 0 0 8px var(--purple);
+        }
+        .dot-green {
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+        .dot-pink {
+            background: var(--pink);
+            box-shadow: 0 0 8px var(--pink);
+        }
+
+        .btn {
+            padding: 9px 16px;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--highlight);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 600;
+            transition: all 0.25s;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn:hover {
+            background: #1f2d3d;
+            border-color: #4a6a8a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        }
+        .btn:active {
+            transform: scale(0.96);
+            transition: all 0.1s;
+        }
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 3px 12px rgba(61, 122, 237, 0.25);
+        }
+        .btn-primary:hover {
+            background: #4d8af5;
+            border-color: #4d8af5;
+            box-shadow: 0 5px 18px rgba(61, 122, 237, 0.4);
+        }
+        .btn-gold {
+            background: #b8891e;
+            border-color: #c99a2e;
+            color: #fff;
+        }
+        .btn-gold:hover {
+            background: #c99a2e;
+            box-shadow: 0 5px 18px rgba(240, 192, 96, 0.3);
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.73em;
+            border-radius: 16px;
+        }
+        .btn-xs {
+            padding: 3px 8px;
+            font-size: 0.68em;
+            border-radius: 12px;
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: grayscale(30%);
+        }
+
+        .student-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .student-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .student-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .student-list::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 4px;
+        }
+        .student-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            background: var(--highlight);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            gap: 8px;
+            transition: all 0.3s;
+            flex-wrap: wrap;
+        }
+        .student-card:hover {
+            border-color: #3a4d60;
+        }
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+        }
+        .student-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .avatar-beginner {
+            background: #5a7a9a;
+        }
+        .avatar-improver {
+            background: #3d7aed;
+        }
+        .avatar-province {
+            background: #8b6fc0;
+        }
+        .avatar-national {
+            background: #e09040;
+        }
+        .avatar-team {
+            background: #e0555a;
+        }
+        .avatar-ioi {
+            background: #f0c060;
+            color: #1a1a1a;
+        }
+        .student-name {
+            font-weight: 600;
+            font-size: 0.85em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .student-level {
+            font-size: 0.7em;
+            color: var(--text2);
+        }
+        .student-stats {
+            font-size: 0.7em;
+            color: var(--text2);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .stat-badge {
+            background: #1a2533;
+            padding: 3px 7px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            white-space: nowrap;
+        }
+        .progress-bar-wrap {
+            width: 50px;
+            height: 5px;
+            background: #1a2533;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s;
+        }
+        .fill-cyan {
+            background: var(--cyan);
+        }
+        .fill-green {
+            background: var(--green);
+        }
+        .fill-gold {
+            background: var(--gold);
+        }
+
+        .facility-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .facility-card {
+            background: var(--highlight);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .facility-card:hover {
+            border-color: #3a4d60;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .facility-icon {
+            font-size: 2em;
+            margin-bottom: 4px;
+        }
+        .facility-name {
+            font-weight: 700;
+            font-size: 0.8em;
+        }
+        .facility-level {
+            font-size: 0.7em;
+            color: var(--text2);
+        }
+        .facility-cost {
+            font-size: 0.7em;
+            color: var(--gold);
+        }
+
+        .log-area {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.75em;
+            color: var(--text2);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .log-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .log-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .log-area::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 4px;
+        }
+        .log-line {
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.015);
+            border-left: 2px solid transparent;
+        }
+        .log-good {
+            border-left-color: var(--green);
+            color: #8cc9a0;
+        }
+        .log-great {
+            border-left-color: var(--gold);
+            color: #e8c870;
+        }
+        .log-info {
+            border-left-color: var(--cyan);
+            color: #7cc8d4;
+        }
+        .log-warn {
+            border-left-color: var(--orange);
+            color: #e8a860;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(61, 122, 237, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(61, 122, 237, 0.5);
+            }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a2533;
+            border: 1px solid var(--accent);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.4s;
+            font-size: 0.9em;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+        .toast.show {
+            opacity: 1;
+            top: 30px;
+        }
+        .toast.golden {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .highlight-num {
+            font-weight: 700;
+            color: #fff;
+        }
+        .text-gold {
+            color: var(--gold);
+        }
+        .text-cyan {
+            color: var(--cyan);
+        }
+        .text-green {
+            color: var(--green);
+        }
+        .text-red {
+            color: var(--red);
+        }
+        .text-purple {
+            color: var(--purple);
+        }
+        .text-pink {
+            color: var(--pink);
+        }
+        .text-orange {
+            color: var(--orange);
+        }
+
+        .ending-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            flex-direction: column;
+            text-align: center;
+        }
+        .ending-card {
+            background: var(--panel);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--gold);
+            max-width: 500px;
+            width: 90%;
+        }
+        .ending-card.bad {
+            border-color: var(--red);
+        }
+        .ending-card h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .ending-card p {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
+        .ending-card hr {
+            border-color: var(--border);
+            margin: 20px 0;
+        }
+        .ending-stats {
+            text-align: left;
+            display: inline-block;
+            color: var(--text);
+            line-height: 1.8;
+        }
+        .ending-stats b {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="game-container">
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo-icon">&lt;/&gt;</div>
+                <div>
+                    <h1>OI机构模拟器 <span class="version-tag">v0.1</span></h1>
+                    <div class="subtitle">📐 信息学竞赛培训 · 经营模拟</div>
+                </div>
+                <button class="btn btn-primary pulse advance-btn" onclick="advanceWeek()">⏩ 推进一周</button>
+            </div>
+            <div class="resources">
+                <div class="res-item"><span class="res-icon">💰</span><span class="res-value res-gold" id="res-money">5000</span><span class="res-label">金币</span></div>
+                <div class="res-item"><span class="res-icon">⭐</span><span class="res-value res-cyan" id="res-rep">100</span><span class="res-label">声望</span></div>
+                <div class="res-item"><span class="res-icon">👨‍🎓</span><span class="res-value res-green" id="res-students">0</span><span class="res-label">学生</span></div>
+                <div class="res-item"><span class="res-icon">📅</span><span class="res-value res-purple" id="res-date">1月1日</span><span class="res-label" id="res-week-label">第1周</span></div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <div class="panel">
+                    <h3><span class="dot dot-cyan"></span>👨‍🎓 在读学生 <span style="font-weight:400;font-size:0.7em;color:var(--text2);" id="student-count-display">(0/8)</span></h3>
+                    <div class="student-list" id="student-list"></div>
+                    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="recruitStudent()" id="btn-recruit">📝 招募新生 (300💰)</button>
+                        <button class="btn btn-sm" onclick="trainAllStudents()" id="btn-train">🏋️ 集体训练 (200💰)</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3><span class="dot dot-purple"></span>👨‍🏫 教练团队</h3>
+                    <div id="coach-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+                    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-sm" onclick="hireCoach('junior')" id="btn-hire-junior">🧑‍💻 聘初级教练 (800💰)</button>
+                        <button class="btn btn-sm" onclick="hireCoach('senior')" id="btn-hire-senior">👨‍🔬 聘高级教练 (2000💰)</button>
+                        <button class="btn btn-gold btn-sm" onclick="hireCoach('gold')" id="btn-hire-gold">🏅 聘金牌教练 (5000💰)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <div class="panel">
+                    <h3><span class="dot dot-gold"></span>🏗️ 设施升级</h3>
+                    <div class="facility-grid" id="facility-grid"></div>
+                </div>
+
+                <div class="panel">
+                    <h3><span class="dot dot-green"></span>🏆 参加比赛</h3>
+                    <div id="contest-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="panel">
+                    <h3><span class="dot dot-pink"></span>📋 事件日志</h3>
+                    <div class="log-area" id="log-area">
+                        <div class="log-line log-info">🎉 欢迎！你的OI培训机构正式开业了！</div>
+                        <div class="log-line log-info">📝 快招募第一批学生，开启你的竞赛之路！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            const state = {
+                money: 5000,
+                reputation: 100,
+                week: 1,
+                currentDate: new Date(2025, 0, 1),
+                maxStudents: 8,
+                students: [],
+                coaches: [],
+                facilities: {
+                    classroom: { name: '教室', level: 1, icon: '🏫', desc: '提升教学效率', costBase: 600, effect: 0.05 },
+                    computerRoom: { name: '机房', level: 1, icon: '🖥️', desc: '提升训练效果', costBase: 800, effect: 0.06 },
+                    library: { name: '图书馆', level: 0, icon: '📚', desc: '提升自学能力', costBase: 1000, effect: 0.04 },
+                    lounge: { name: '休息区', level: 0, icon: '☕', desc: '提升学生满意度', costBase: 500, effect: 0.03 },
+                    trainingPlan: { name: '训练计划', level: 0, icon: '📋', desc: '增加每周训练次数', costBase: 1200, effect: 0 },
+                },
+                contests: [
+                    { id: 'noip_junior', name: 'NOIP普及组', difficulty: 1, entryFee: 200, prizeMoney: 600, repGain: 15,
+                        minLevel: 0, cooldown: 0, maxCooldown: 3, available: true },
+                    { id: 'noip_senior', name: 'NOIP提高组', difficulty: 3, entryFee: 400, prizeMoney: 1500, repGain: 30,
+                        minLevel: 1, cooldown: 0, maxCooldown: 5, available: true },
+                    { id: 'provincial', name: '省队选拔赛', difficulty: 6, entryFee: 800, prizeMoney: 3500, repGain: 60,
+                        minLevel: 2, cooldown: 0, maxCooldown: 8, available: true },
+                    { id: 'noi', name: 'NOI全国赛', difficulty: 9, entryFee: 1500, prizeMoney: 8000, repGain: 120,
+                        minLevel: 3, cooldown: 0, maxCooldown: 12, available: true },
+                    { id: 'ioi', name: 'IOI国际赛', difficulty: 13, entryFee: 3000, prizeMoney: 20000, repGain: 250,
+                        minLevel: 4, cooldown: 0, maxCooldown: 20, available: true },
+                ],
+                logs: [
+                    { text: '🎉 欢迎！你的OI培训机构正式开业了！', type: 'log-info' },
+                    { text: '📝 快招募第一批学生，开启你的竞赛之路！', type: 'log-info' },
+                ],
+                nextStudentId: 1,
+                gameOver: false,
+                endingType: null,
+            };
+
+            const firstNames = ['林', '陈', '张', '王', '李', '刘', '黄', '周', '吴', '郑', '赵', '孙', '朱', '马', '胡', '郭', '何', '高', '罗',
+                '杨', '许', '沈', '韩', '冯', '邓', '曹', '彭', '曾', '肖', '田'
+            ];
+            const lastNames = ['子轩', '浩然', '宇辰', '铭哲', '睿渊', '泽宇', '昊天', '煜祺', '思远', '文博', '明辉', '志远', '俊杰', '逸飞', '星辰', '雨泽', '天翊',
+                '凯文', '晓峰', '一鸣', '乐天', '云飞', '景行', '知远', '清源', '伯安', '守仁', '致远', '明哲', '若愚'
+            ];
+
+            function randomName() {
+                return firstNames[Math.floor(Math.random() * firstNames.length)] +
+                    lastNames[Math.floor(Math.random() * lastNames.length)];
+            }
+
+            function randomTalent() {
+                const r = Math.random();
+                if (r < 0.08) return { name: '天才', multiplier: 2.5, color: '#f0c060' };
+                if (r < 0.22) return { name: '优秀', multiplier: 1.6, color: '#8b6fc0' };
+                if (r < 0.5) return { name: '良好', multiplier: 1.2, color: '#5cb878' };
+                return { name: '普通', multiplier: 1.0, color: '#8899aa' };
+            }
+
+            function getMaxTrainingPerWeek() {
+                return 2 + (state.facilities.trainingPlan?.level || 0);
+            }
+
+            function createStudent() {
+                const talent = randomTalent();
+                return {
+                    id: state.nextStudentId++,
+                    name: randomName(),
+                    level: 0,
+                    progress: 0,
+                    progressNeeded: 100,
+                    talent: talent,
+                    training: 0,
+                    maxTrainingPerWeek: getMaxTrainingPerWeek(),
+                };
+            }
+
+            function getLevelName(level) {
+                return ['入门', '提高', '省一', '国奖', '集训队', 'IOI金牌'][level] || '入门';
+            }
+
+            function getAvatarClass(level) {
+                return ['avatar-beginner', 'avatar-improver', 'avatar-province', 'avatar-national', 'avatar-team',
+                    'avatar-ioi'
+                ][level] || 'avatar-beginner';
+            }
+
+            function getLevelColor(level) {
+                return ['#8899aa', '#3d7aed', '#8b6fc0', '#e09040', '#e0555a', '#f0c060'][level] || '#8899aa';
+            }
+
+            function getHighestLevelName() {
+                if (state.students.length === 0) return '无';
+                const maxLevel = Math.max(...state.students.map(s => s.level));
+                return getLevelName(maxLevel);
+            }
+
+            function initGame() {
+                updateAllUI();
+            }
+
+            function getTotalCoachBonus() {
+                return state.coaches.reduce((sum, c) => sum + c.bonus, 0);
+            }
+
+            function getFacilityMultiplier() {
+                let mult = 1.0;
+                for (const key in state.facilities) {
+                    const f = state.facilities[key];
+                    if (f.effect) mult += f.level * f.effect;
+                }
+                return mult;
+            }
+
+            function getTrainingEffectiveness(student) {
+                const coachBonus = getTotalCoachBonus();
+                const facilityMult = getFacilityMultiplier();
+                const talentMult = student.talent.multiplier;
+                const base = 10 + coachBonus;
+                return Math.round(base * facilityMult * talentMult);
+            }
+
+            function checkEnding() {
+                if (state.money < 0 && !state.gameOver) {
+                    state.gameOver = true;
+                    state.endingType = 'bad';
+                }
+            }
+
+            function recruitStudent() {
+                if (state.gameOver) return;
+                if (state.students.length >= state.maxStudents) {
+                    showToast('❌ 学生已满！请升级教室来增加容量', 'warn');
+                    return;
+                }
+                if (state.money < 300) {
+                    showToast('❌ 金币不足！招募需要300💰', 'warn');
+                    return;
+                }
+                state.money -= 300;
+                const s = createStudent();
+                state.students.push(s);
+                addLog(`📝 招募了新学生 <span class="highlight-num">${s.name}</span>（天赋：<span style="color:${s.talent.color}">${s.talent.name}</span>）`,
+                    'log-info');
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`✅ 欢迎新同学 ${s.name}！`);
+            }
+
+            function trainAllStudents() {
+                if (state.gameOver) return;
+                if (state.students.length === 0) {
+                    showToast('❌ 没有学生可以训练！', 'warn');
+                    return;
+                }
+                if (state.money < 200) {
+                    showToast('❌ 金币不足！集体训练需要200💰', 'warn');
+                    return;
+                }
+                let trainedCount = 0;
+                for (const s of state.students) {
+                    if (s.training < s.maxTrainingPerWeek) trainedCount++;
+                }
+                if (trainedCount === 0) {
+                    showToast('⚠️ 所有学生本周训练次数已满！', 'warn');
+                    return;
+                }
+                state.money -= 200;
+                let totalGain = 0;
+                for (const s of state.students) {
+                    if (s.training < s.maxTrainingPerWeek) {
+                        const gain = getTrainingEffectiveness(s);
+                        s.progress += gain;
+                        s.training++;
+                        totalGain += gain;
+                        checkLevelUp(s);
+                    }
+                }
+                addLog(`🏋️ 集体训练完成！总进度提升 <span class="highlight-num">+${totalGain}</span>`, 'log-good');
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`🏋️ 训练完成！进度+${totalGain}`);
+            }
+
+            function trainStudent(studentId) {
+                if (state.gameOver) return;
+                const s = state.students.find(st => st.id === studentId);
+                if (!s) return;
+                if (s.training >= s.maxTrainingPerWeek) {
+                    showToast('⚠️ 该学生本周训练次数已满！', 'warn');
+                    return;
+                }
+                if (state.money < 50) {
+                    showToast('❌ 金币不足！单独训练需要50💰', 'warn');
+                    return;
+                }
+                state.money -= 50;
+                const gain = getTrainingEffectiveness(s);
+                s.progress += gain;
+                s.training++;
+                addLog(`🏋️ <span class="highlight-num">${s.name}</span> 完成训练，进度+${gain}`, 'log-good');
+                checkLevelUp(s);
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`✅ ${s.name} 训练完成！+${gain}`);
+            }
+
+            function checkLevelUp(student) {
+                const maxLevel = 5;
+                while (student.progress >= student.progressNeeded && student.level < maxLevel) {
+                    student.progress -= student.progressNeeded;
+                    student.level++;
+                    student.progressNeeded = Math.floor(student.progressNeeded * 1.6);
+                    const newLevelName = getLevelName(student.level);
+                    addLog(
+                        `🎉 <span class="highlight-num">${student.name}</span> 升级为 <span style="color:${getLevelColor(student.level)};font-weight:700;">${newLevelName}</span>！`,
+                        'log-great');
+                    showToast(`🎉 ${student.name} 晋升为【${newLevelName}】！`, 'golden');
+                    const repGain = (student.level + 1) * 10;
+                    state.reputation += repGain;
+                }
+                if (student.level >= maxLevel) {
+                    student.progress = Math.min(student.progress, student.progressNeeded - 1);
+                }
+            }
+
+            function hireCoach(type) {
+                if (state.gameOver) return;
+                const configs = {
+                    junior: { name: '初级教练', icon: '🧑‍💻', bonus: 8, salary: 30, cost: 800, prefix: '王' },
+                    senior: { name: '高级教练', icon: '👨‍🔬', bonus: 18, salary: 70, cost: 2000, prefix: '刘' },
+                    gold: { name: '金牌教练', icon: '🏅', bonus: 35, salary: 150, cost: 5000, prefix: '陈' },
+                };
+                const cfg = configs[type];
+                if (!cfg) return;
+                if (state.money < cfg.cost) {
+                    showToast(`❌ 金币不足！需要${cfg.cost}💰`, 'warn');
+                    return;
+                }
+                state.money -= cfg.cost;
+                const coachNames = ['老师', '教授', '导师', '专家', '大牛'];
+                const name = cfg.prefix + coachNames[Math.floor(Math.random() * coachNames.length)];
+                state.coaches.push({ type, name, icon: cfg.icon, bonus: cfg.bonus, salary: cfg.salary,
+                    level: cfg.name });
+                addLog(`👨‍🏫 聘用了<span class="highlight-num">${cfg.name}</span> ${name}（训练加成+${cfg.bonus}）`, 'log-info');
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`✅ 欢迎 ${cfg.name} ${name} 加入团队！`);
+            }
+
+            function upgradeFacility(key) {
+                if (state.gameOver) return;
+                const f = state.facilities[key];
+                if (!f) return;
+                const cost = f.costBase * (f.level + 1);
+                if (state.money < cost) {
+                    showToast(`❌ 金币不足！升级需要${cost}💰`, 'warn');
+                    return;
+                }
+                state.money -= cost;
+                f.level++;
+                addLog(`🏗️ <span class="highlight-num">${f.name}</span> 升级到 Lv.${f.level}！`, 'log-info');
+                if (key === 'classroom') {
+                    state.maxStudents = 8 + (f.level - 1) * 3;
+                }
+                if (key === 'trainingPlan') {
+                    state.students.forEach(s => { s.maxTrainingPerWeek = getMaxTrainingPerWeek(); });
+                }
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`✅ ${f.name} 升级到 Lv.${f.level}！`);
+            }
+
+            function enterContest(contestId) {
+                if (state.gameOver) return;
+                const contest = state.contests.find(c => c.id === contestId);
+                if (!contest) return;
+                if (!contest.available) {
+                    showToast('⏳ 该比赛正在冷却中...', 'warn');
+                    return;
+                }
+                if (state.money < contest.entryFee) {
+                    showToast(`❌ 金币不足！报名费需要${contest.entryFee}💰`, 'warn');
+                    return;
+                }
+                const eligible = state.students.filter(s => s.level >= contest.minLevel);
+                if (eligible.length === 0) {
+                    showToast(`❌ 没有符合条件的学生！需要等级≥${getLevelName(contest.minLevel)}`, 'warn');
+                    return;
+                }
+                const bestStudent = eligible.reduce((best, s) => {
+                    const score = s.level * 1000 + s.progress;
+                    return score > (best.level * 1000 + best.progress) ? s : best;
+                }, eligible[0]);
+
+                state.money -= contest.entryFee;
+                const studentPower = bestStudent.level * 100 + bestStudent.progress;
+                const contestPower = contest.difficulty * 70;
+                const luck = (Math.random() - 0.35) * 40;
+                const totalPower = studentPower + luck;
+                const ratio = totalPower / Math.max(contestPower, 1);
+
+                let resultText = '';
+                let prizeMultiplier = 0;
+                let repGain = 0;
+                let logType = 'log-info';
+
+                if (ratio >= 1.8) {
+                    resultText = '🏅 金牌/满分！';
+                    prizeMultiplier = 2.0;
+                    repGain = contest.repGain * 2;
+                    logType = 'log-great';
+                } else if (ratio >= 1.3) {
+                    resultText = '🥈 银牌/一等奖！';
+                    prizeMultiplier = 1.3;
+                    repGain = Math.floor(contest.repGain * 1.3);
+                    logType = 'log-great';
+                } else if (ratio >= 0.9) {
+                    resultText = '🥉 铜牌/二等奖';
+                    prizeMultiplier = 0.8;
+                    repGain = Math.floor(contest.repGain * 0.8);
+                    logType = 'log-good';
+                } else if (ratio >= 0.5) {
+                    resultText = '📜 三等奖/参与奖';
+                    prizeMultiplier = 0.3;
+                    repGain = Math.floor(contest.repGain * 0.3);
+                    logType = 'log-info';
+                } else {
+                    resultText = '💔 遗憾未获奖';
+                    prizeMultiplier = 0;
+                    repGain = 0;
+                    logType = 'log-warn';
+                }
+
+                const prizeMoney = Math.floor(contest.prizeMoney * prizeMultiplier);
+                state.money += prizeMoney;
+                state.reputation += repGain;
+
+                const progressGain = Math.floor((contest.difficulty * 8 + 15) * bestStudent.talent.multiplier *
+                    getFacilityMultiplier());
+                bestStudent.progress += progressGain;
+                checkLevelUp(bestStudent);
+
+                contest.available = false;
+                contest.cooldown = contest.maxCooldown;
+
+                addLog(
+                    `🏆 <span class="highlight-num">${bestStudent.name}</span> 参加 <b>${contest.name}</b>：${resultText} | 奖金+${prizeMoney}💰 声望+${repGain}⭐`,
+                    logType);
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`${resultText} ${bestStudent.name} 在${contest.name}中表现优异！`);
+            }
+
+            function advanceWeek() {
+                if (state.gameOver) return;
+                state.currentDate.setDate(state.currentDate.getDate() + 7);
+                if (state.currentDate >= new Date(2025, 11, 31)) {
+                    state.gameOver = true;
+                    state.endingType = 'good';
+                    updateAllUI();
+                    return;
+                }
+                state.week++;
+
+                for (const s of state.students) {
+                    s.training = 0;
+                }
+
+                for (const c of state.contests) {
+                    if (!c.available) {
+                        c.cooldown--;
+                        if (c.cooldown <= 0) {
+                            c.available = true;
+                            c.cooldown = 0;
+                            addLog(`🔔 <b>${c.name}</b> 现在可以报名了！`, 'log-info');
+                        }
+                    }
+                }
+
+                let totalSalary = 0;
+                for (const coach of state.coaches) {
+                    totalSalary += coach.salary;
+                }
+                state.money -= totalSalary;
+                if (totalSalary > 0) {
+                    addLog(`💸 支付教练工资：<span class="text-red">-${totalSalary}💰</span>`, 'log-warn');
+                }
+
+                const tuitionIncome = state.students.length * 80 + state.reputation * 2;
+                state.money += tuitionIncome;
+                addLog(`📊 学费收入：<span class="text-green">+${tuitionIncome}💰</span>（${state.students.length}名学生）`, 'log-info');
+
+                const repChange = Math.floor(state.students.filter(s => s.level >= 3).length * 5 -
+                    state.students.filter(s => s.level < 1).length * 1);
+                state.reputation = Math.max(10, state.reputation + repChange);
+
+                for (const s of state.students) {
+                    const naturalGain = Math.floor((1 + s.level) * getFacilityMultiplier() * s.talent.multiplier);
+                    s.progress += naturalGain;
+                    checkLevelUp(s);
+                }
+
+                if (state.money < -500) {
+                    addLog('⚠️ <span class="text-red">资金严重不足！机构面临破产风险！</span>', 'log-warn');
+                    state.money = Math.max(state.money, -1000);
+                }
+
+                checkEnding();
+                updateAllUI();
+                if (!state.gameOver) showToast(`📅 第 ${state.week} 周开始！`);
+            }
+
+            function getEndingHTML(type) {
+                const isGood = type === 'good';
+                const title = isGood ? '🏆 年度回顾 🏆' : '💔 机构破产 💔';
+                const desc = isGood ? '你成功经营OI机构度过了2025年！' : '资金断裂，无法继续运营...';
+                const borderColor = isGood ? 'var(--gold)' : 'var(--red)';
+                return `
+                <div class="ending-screen">
+                    <div class="ending-card ${isGood ? '' : 'bad'}" style="border-color:${borderColor};">
+                        <h2 style="color:${borderColor};">${title}</h2>
+                        <p style="font-size:1.2em;margin-bottom:15px;">${desc}</p>
+                        <hr>
+                        <div class="ending-stats">
+                            <p>📅 持续了 <b>${state.week}</b> 周</p>
+                            <p>💰 最终资金：<b>${Math.floor(state.money)}</b></p>
+                            <p>⭐ 声望：<b>${Math.floor(state.reputation)}</b></p>
+                            <p>👨‍🎓 学生数量：<b>${state.students.length}</b></p>
+                            <p>🏅 最高成就：<b>${getHighestLevelName()}</b></p>
+                        </div>
+                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top:25px;font-size:1em;padding:12px 28px;">🔄 重新开始</button>
+                    </div>
+                </div>`;
+            }
+
+            function updateAllUI() {
+                if (state.gameOver) {
+                    document.getElementById('game-container').innerHTML = getEndingHTML(state.endingType);
+                    return;
+                }
+
+                document.getElementById('res-money').textContent = Math.floor(state.money);
+                document.getElementById('res-rep').textContent = Math.floor(state.reputation);
+                document.getElementById('res-students').textContent = state.students.length;
+                const d = state.currentDate;
+                document.getElementById('res-date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日';
+                document.getElementById('res-week-label').textContent = '第' + state.week + '周';
+                document.getElementById('student-count-display').textContent =
+                    `(${state.students.length}/${state.maxStudents})`;
+
+                const studentListEl = document.getElementById('student-list');
+                if (state.students.length === 0) {
+                    studentListEl.innerHTML =
+                        '<div style="color:var(--text2);text-align:center;padding:20px;">暂无学生，点击下方按钮招募吧~</div>';
+                } else {
+                    studentListEl.innerHTML = state.students.map(s => {
+                        const pct = Math.min(100, Math.floor((s.progress / s.progressNeeded) * 100));
+                        const levelColor = getLevelColor(s.level);
+                        return `
+                    <div class="student-card">
+                      <div class="student-info">
+                        <div class="student-avatar ${getAvatarClass(s.level)}">${s.name.charAt(0)}</div>
+                        <div>
+                          <div class="student-name">${s.name}</div>
+                          <div class="student-level" style="color:${levelColor};">Lv.${s.level} ${getLevelName(s.level)} <span style="color:${s.talent.color};font-size:0.85em;">[${s.talent.name}]</span></div>
+                        </div>
+                      </div>
+                      <div class="student-stats">
+                        <div class="progress-bar-wrap" title="升级进度 ${pct}%">
+                          <div class="progress-bar-fill fill-cyan" style="width:${pct}%;"></div>
+                        </div>
+                        <span style="font-size:0.7em;">${pct}%</span>
+                        <span class="stat-badge">🏋️${s.training}/${s.maxTrainingPerWeek}</span>
+                        <button class="btn btn-xs" onclick="trainStudent(${s.id})" ${s.training>=s.maxTrainingPerWeek?'disabled':''}>训练</button>
+                      </div>
+                    </div>`;
+                    }).join('');
+                }
+
+                const coachListEl = document.getElementById('coach-list');
+                if (state.coaches.length === 0) {
+                    coachListEl.innerHTML =
+                        '<div style="color:var(--text2);text-align:center;padding:10px;">暂无教练，聘请教练来加速学生成长</div>';
+                } else {
+                    coachListEl.innerHTML = state.coaches.map(c => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--highlight);border-radius:8px;gap:8px;">
+                  <span>${c.icon} <b>${c.name}</b> <span style="color:var(--text2);font-size:0.75em;">[${c.level}]</span></span>
+                  <span style="font-size:0.75em;">训练加成<span class="text-cyan">+${c.bonus}</span> | 周薪<span class="text-red">${c.salary}💰</span></span>
+                </div>`).join('');
+                }
+
+                const facilityGridEl = document.getElementById('facility-grid');
+                facilityGridEl.innerHTML = Object.entries(state.facilities).map(([key, f]) => {
+                    const cost = f.costBase * (f.level + 1);
+                    let extraDesc = '';
+                    if (key === 'classroom') extraDesc =
+                        `<div style="font-size:0.65em;color:var(--text2);">容量：${8+(f.level-1)*3}人</div>`;
+                    if (key === 'trainingPlan') extraDesc =
+                        `<div style="font-size:0.65em;color:var(--cyan);">训练次数上限：${getMaxTrainingPerWeek()}次/周</div>`;
+                    return `
+                <div class="facility-card" onclick="upgradeFacility('${key}')" title="点击升级">
+                  <div class="facility-icon">${f.icon}</div>
+                  <div class="facility-name">${f.name}</div>
+                  <div class="facility-level">Lv.${f.level} ${f.effect ? '| 效果+'+(f.effect*100).toFixed(1)+'%' : ''}</div>
+                  <div class="facility-cost">升级费用：${cost}💰</div>
+                  ${extraDesc}
+                </div>`;
+                }).join('');
+
+                const contestListEl = document.getElementById('contest-list');
+                contestListEl.innerHTML = state.contests.map(c => {
+                    const eligibleCount = state.students.filter(s => s.level >= c.minLevel).length;
+                    const cdText = c.available ? '✅ 可报名' : `⏳ 冷却中(${c.cooldown}周)`;
+                    return `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--highlight);border-radius:8px;gap:8px;flex-wrap:wrap;">
+                  <div>
+                    <b>${c.name}</b>
+                    <span style="font-size:0.7em;color:var(--text2);">难度:${'⭐'.repeat(Math.min(c.difficulty,10))} | 需≥${getLevelName(c.minLevel)}</span>
+                    <span style="font-size:0.7em;color:var(--text2);"> | ${cdText}</span>
+                    <span style="font-size:0.7em;color:var(--cyan);"> | 可选:${eligibleCount}人</span>
+                  </div>
+                  <button class="btn btn-gold btn-sm" onclick="enterContest('${c.id}')" ${!c.available||eligibleCount===0?'disabled':''}>
+                    🏆 报名(${c.entryFee}💰)
+                  </button>
+                </div>`;
+                }).join('');
+
+                const logAreaEl = document.getElementById('log-area');
+                logAreaEl.innerHTML = state.logs.slice(-30).map(l =>
+                    `<div class="log-line ${l.type}">${l.text}</div>`
+                ).join('');
+                logAreaEl.scrollTop = logAreaEl.scrollHeight;
+
+                document.getElementById('btn-recruit').disabled = state.students.length >= state.maxStudents ||
+                    state.money < 300;
+                document.getElementById('btn-train').disabled = state.students.length === 0 || state.money < 200;
+                document.getElementById('btn-hire-junior').disabled = state.money < 800;
+                document.getElementById('btn-hire-senior').disabled = state.money < 2000;
+                document.getElementById('btn-hire-gold').disabled = state.money < 5000;
+            }
+
+            function addLog(text, type = 'log-info') {
+                if (state.gameOver) return;
+                state.logs.push({ text, type });
+                if (state.logs.length > 50) state.logs.shift();
+            }
+
+            function showToast(msg, type = '') {
+                if (state.gameOver) return;
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.className = 'toast ' + type + ' show';
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2200);
+            }
+
+            window.recruitStudent = recruitStudent;
+            window.trainAllStudents = trainAllStudents;
+            window.trainStudent = trainStudent;
+            window.hireCoach = hireCoach;
+            window.upgradeFacility = upgradeFacility;
+            window.enterContest = enterContest;
+            window.advanceWeek = advanceWeek;
+
+            initGame();
+            console.log('🏫 OI机构模拟器 v0.1 已就绪！');
+            console.log('📅 时间：2025/1/1 - 2025/12/31');
+            console.log('🏆 好结局：坚持到年底 | 坏结局：资金归零');
+        })();
+    </script>
+</body>
+</html>
