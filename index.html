@@ -163,6 +163,9 @@
         .res-purple {
             color: var(--purple);
         }
+        .res-orange {
+            color: var(--orange);
+        }
 
         .main-grid {
             display: grid;
@@ -617,6 +620,7 @@
                 <div class="res-item"><span class="res-icon">💰</span><span class="res-value res-gold" id="res-money">5000</span><span class="res-label">金币</span></div>
                 <div class="res-item"><span class="res-icon">⭐</span><span class="res-value res-cyan" id="res-rep">100</span><span class="res-label">声望</span></div>
                 <div class="res-item"><span class="res-icon">👨‍🎓</span><span class="res-value res-green" id="res-students">0</span><span class="res-label">学生</span></div>
+                <div class="res-item"><span class="res-icon">🏠</span><span class="res-value res-orange" id="res-rent">60</span><span class="res-label">周租金</span></div>
                 <div class="res-item"><span class="res-icon">📅</span><span class="res-value res-purple" id="res-date">1月1日</span><span class="res-label" id="res-week-label">第1周</span></div>
             </div>
         </div>
@@ -677,6 +681,7 @@
                 maxStudents: 8,
                 students: [],
                 coaches: [],
+                rentPerLevel: 30,
                 facilities: {
                     classroom: { name: '教室', level: 1, icon: '🏫', desc: '提升教学效率', costBase: 600, effect: 0.05 },
                     computerRoom: { name: '机房', level: 1, icon: '🖥️', desc: '提升训练效果', costBase: 800, effect: 0.06 },
@@ -761,6 +766,14 @@
                 if (state.students.length === 0) return '无';
                 const maxLevel = Math.max(...state.students.map(s => s.level));
                 return getLevelName(maxLevel);
+            }
+
+            function getRentCost() {
+                let totalLevel = 0;
+                for (const key in state.facilities) {
+                    totalLevel += state.facilities[key].level;
+                }
+                return totalLevel * state.rentPerLevel;
             }
 
             function initGame() {
@@ -1055,9 +1068,21 @@
                     addLog(`💸 支付教练工资：<span class="text-red">-${totalSalary}💰</span>`, 'log-warn');
                 }
 
-                const tuitionIncome = state.students.length * 80 + state.reputation * 2;
-                state.money += tuitionIncome;
-                addLog(`📊 学费收入：<span class="text-green">+${tuitionIncome}💰</span>（${state.students.length}名学生）`, 'log-info');
+                const rent = getRentCost();
+                state.money -= rent;
+                if (rent > 0) {
+                    addLog(`🏠 支付房屋租金：<span class="text-orange">-${rent}💰</span>（设施总等级）`, 'log-warn');
+                }
+
+                // 修复：只有当学生数量大于0时才计算学费收入
+                if (state.students.length > 0) {
+                    const tuitionIncome = state.students.length * 80 + state.reputation * 2;
+                    state.money += tuitionIncome;
+                    addLog(`📊 学费收入：<span class="text-green">+${tuitionIncome}💰</span>（${state.students.length}名学生）`, 'log-info');
+                } else {
+                    // 无学生时无学费，仅记录一条提示（可选）
+                    addLog(`📊 本周无在读学生，没有学费收入。`, 'log-info');
+                }
 
                 const repChange = Math.floor(state.students.filter(s => s.level >= 3).length * 5 -
                     state.students.filter(s => s.level < 1).length * 1);
@@ -1111,6 +1136,7 @@
                 document.getElementById('res-money').textContent = Math.floor(state.money);
                 document.getElementById('res-rep').textContent = Math.floor(state.reputation);
                 document.getElementById('res-students').textContent = state.students.length;
+                document.getElementById('res-rent').textContent = getRentCost();
                 const d = state.currentDate;
                 document.getElementById('res-date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日';
                 document.getElementById('res-week-label').textContent = '第' + state.week + '周';
